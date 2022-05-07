@@ -26,12 +26,14 @@ AUTH0_DOMAIN=example.us.auth0.com
 AUTH0_CLIENT_ID=__INSERT_CLIENT_ID_HERE__
 AUTH0_CLIENT_SECRET=__INSERT_CLIENT_SECRET_HERE__
 
+MANAGEMENT_API_URL=https://[tenant].[region].auth0.com/api/v2/
 
-MANAGEMENT_API_URL=
-TOKEN_URL=
-CLIENTS_URL=
-API_EXPLORER_CLIENT_ID=
-API_EXPLORER_SECRET=
+TOKEN_URL=https://[tenant].[region].auth0.com/oauth/token
+CLIENTS_URL=https://[tenant].[region].auth0.com/api/v2/clients
+RULES_URL=https://[tenant].[region].auth0.com/api/v2/rules
+
+API_EXPLORER_CLIENT_ID= [your API Explorer Client Id]
+API_EXPLORER_SECRET= [your API Explorer Client Secret]
 ```
 
 Start the server.
