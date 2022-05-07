@@ -1,5 +1,7 @@
 # sampleApp-express-auth0
 
+This app displays the Auth0 tenant's enabled clients and the rules applying to each application.
+
 This app  uses [Passport](https://www.passportjs.org/) with
 [Express](https://expressjs.com/) to sign users in via [Auth0](https://auth0.com/).
 and the [`passport-openidconnect`](https://www.passportjs.org/packages/passport-openidconnect/)
@@ -45,9 +47,7 @@ $ npm start
 Navigate to [`http://localhost:3000`](http://localhost:3000).
 
 
-
-HTML pages  are rendered via [EJS](https://ejs.co/) templates and styled with vanilla CSS.  Data is stored in
-and queried from a [SQLite](https://www.sqlite.org/) database.
+HTML pages  are rendered via [EJS](https://ejs.co/) templates and styled with vanilla CSS.  
 
 After users sign in, a login session is established and maintained between the
 server and the browser with a cookie.  As authenticated users interact with the
@@ -61,3 +61,4 @@ authenticating the session.
 ## Credit
 
 Created by [Jared Hanson](https://www.jaredhanson.me/)
+Customized by Jonathan Rovner
