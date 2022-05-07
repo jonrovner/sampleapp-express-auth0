@@ -1,122 +1,91 @@
 var express = require('express');
 var ensureLogIn = require('connect-ensure-login').ensureLoggedIn;
-var db = require('../db');
+var request = require('request');
+const axios = require('axios'); 
 
 var ensureLoggedIn = ensureLogIn();
 
-function fetchTodos(req, res, next) {
-  db.all('SELECT id, * FROM todos WHERE owner_id = ?', [
-    req.user.id
-  ], function(err, rows) {
-    if (err) { return next(err); }
-    
-    var todos = rows.map(function(row) {
-      return {
-        id: row.id,
-        title: row.title,
-        completed: row.completed == 1 ? true : false,
-        url: '/' + row.id
-      }
-    });
-    res.locals.todos = todos;
-    res.locals.activeCount = todos.filter(function(todo) { return !todo.completed; }).length;
-    res.locals.completedCount = todos.length - res.locals.activeCount;
-    next();
-  });
+const getToken = async () => {
+  const body = {
+    "client_id":process.env.API_EXPLORER_CLIENT_ID,
+    "client_secret":process.env.API_EXPLORER_SECRET,
+    "audience":process.env.MANAGEMENT_API_URL,
+    "grant_type":"client_credentials"}  
+  try{
+    const response = await axios.post(process.env.TOKEN_URL, body)    
+    return response.data.access_token   
+  } catch (err){
+    console.log('ERROR GETTING TOKEN', err)
+  }
 }
 
+const getAppName = rule => {
+  const testString = "clientName"  
+  let {script} = rule 
+      let startIndex = script.indexOf(testString)+testString.length+6
+      let start = script.slice(startIndex)
+      let endIndex = start.indexOf("'")
+      const name = start.slice(0, endIndex)
+      return {...rule, appName: name}
+}
+
+async function getClients(req, res, next){
+
+  const token = await getToken()
+  
+  try {
+  
+    const get_clients = { 
+      method: "GET",
+      url: process.env.CLIENTS_URL,
+      headers: { "authorization": "Bearer "+ token },
+    };
+    
+    const get_rules = {
+      method: "GET",
+      url: process.env.RULES_URL,
+      headers: { "authorization": "Bearer "+ token },
+      
+    }  
+    const clientsResponse = await axios(get_clients)
+    const rulesResponse = await axios(get_rules)
+    const clients = clientsResponse.data
+    const rules = rulesResponse.data
+        
+    const testString = "clientName"
+    
+    const rulesWithAppNames = rules
+      .filter(rule => rule.script.includes(testString))
+      .map( rule => getAppName(rule) )    
+    
+    const globalRules = rules.filter(rule => !rule.script.includes(testString))  
+    
+    const clientsWithRules = clients.map( client => {
+      let rules = [...globalRules.map(r => r.name), 
+        ...rulesWithAppNames.filter(r => r.appName === client.name).map(r => r.name)]
+      return {...client, rules}
+
+    })
+
+    res.locals.clients = clientsWithRules.filter(client => client.name !== "All Applications")
+    res.locals.rulesWithAppNames = rulesWithAppNames 
+    res.locals.globalRules = globalRules
+
+    next()
+  } catch (error) {
+    console.log('ERROR GETTING CLIENTS', error)
+  }  
+}
 var router = express.Router();
-
 /* GET home page. */
-router.get('/', function(req, res, next) {
+router.get('/', ensureLoggedIn, function(req, res, next) {
   if (!req.user) { return res.render('home'); }
-  next();
-}, fetchTodos, function(req, res, next) {
-  res.locals.filter = null;
-  res.render('index', { user: req.user });
-});
+   next();
+}, getClients, function(req, res, next) {     
+     res.render('index', { user: req.user });
+   } 
+ 
+);
 
-router.get('/active', ensureLoggedIn, fetchTodos, function(req, res, next) {
-  res.locals.todos = res.locals.todos.filter(function(todo) { return !todo.completed; });
-  res.locals.filter = 'active';
-  res.render('index', { user: req.user });
-});
-
-router.get('/completed', ensureLoggedIn, fetchTodos, function(req, res, next) {
-  res.locals.todos = res.locals.todos.filter(function(todo) { return todo.completed; });
-  res.locals.filter = 'completed';
-  res.render('index', { user: req.user });
-});
-
-router.post('/', ensureLoggedIn, function(req, res, next) {
-  req.body.title = req.body.title.trim();
-  next();
-}, function(req, res, next) {
-  if (req.body.title !== '') { return next(); }
-  return res.redirect('/' + (req.body.filter || ''));
-}, function(req, res, next) {
-  db.run('INSERT INTO todos (owner_id, title, completed) VALUES (?, ?, ?)', [
-    req.user.id,
-    req.body.title,
-    req.body.completed == true ? 1 : null
-  ], function(err) {
-    if (err) { return next(err); }
-    return res.redirect('/' + (req.body.filter || ''));
-  });
-});
-
-router.post('/:id(\\d+)', ensureLoggedIn, function(req, res, next) {
-  req.body.title = req.body.title.trim();
-  next();
-}, function(req, res, next) {
-  if (req.body.title !== '') { return next(); }
-  db.run('DELETE FROM todos WHERE id = ? AND owner_id = ?', [
-    req.params.id,
-    req.user.id
-  ], function(err) {
-    if (err) { return next(err); }
-    return res.redirect('/' + (req.body.filter || ''));
-  });
-}, function(req, res, next) {
-  db.run('UPDATE todos SET title = ?, completed = ? WHERE id = ? AND owner_id = ?', [
-    req.body.title,
-    req.body.completed !== undefined ? 1 : null,
-    req.params.id,
-    req.user.id
-  ], function(err) {
-    if (err) { return next(err); }
-    return res.redirect('/' + (req.body.filter || ''));
-  });
-});
-
-router.post('/:id(\\d+)/delete', ensureLoggedIn, function(req, res, next) {
-  db.run('DELETE FROM todos WHERE id = ? AND owner_id = ?', [
-    req.params.id,
-    req.user.id
-  ], function(err) {
-    if (err) { return next(err); }
-    return res.redirect('/' + (req.body.filter || ''));
-  });
-});
-
-router.post('/toggle-all', ensureLoggedIn, function(req, res, next) {
-  db.run('UPDATE todos SET completed = ? WHERE owner_id = ?', [
-    req.body.completed !== undefined ? 1 : null,
-    req.user.id
-  ], function(err) {
-    if (err) { return next(err); }
-    return res.redirect('/' + (req.body.filter || ''));
-  });
-});
-
-router.post('/clear-completed', ensureLoggedIn, function(req, res, next) {
-  db.run('DELETE FROM todos WHERE owner_id = ? AND completed = ?', [
-    req.user.id,
-    1
-  ], function(err) {
-    if (err) { return next(err); }
-    return res.redirect('/' + (req.body.filter || ''));
-  });
-});
 
 module.exports = router;

@@ -29,9 +29,11 @@
   },
   "license": "Unlicense",
   "scripts": {
-    "start": "node ./bin/www"
+    "start": "node ./bin/www",
+    "dev": "nodemon ./bin/www"
   },
   "dependencies": {
+    "axios": "^0.27.2",
     "connect-ensure-login": "^0.1.1",
     "connect-sqlite3": "^0.9.13",
     "cookie-parser": "~1.4.4",
@@ -47,6 +49,10 @@
     "passport": "^0.5.2",
     "passport-openidconnect": "^0.1.1",
     "pluralize": "^8.0.0",
+    "request": "^2.88.2",
     "sqlite3": "^5.0.2"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.16"
   }
 }
