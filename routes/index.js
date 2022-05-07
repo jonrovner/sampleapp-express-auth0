@@ -1,6 +1,5 @@
 var express = require('express');
 var ensureLogIn = require('connect-ensure-login').ensureLoggedIn;
-var request = require('request');
 const axios = require('axios'); 
 
 var ensureLoggedIn = ensureLogIn();
