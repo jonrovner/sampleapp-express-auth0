@@ -21,11 +21,11 @@ const getToken = async () => {
 const getAppName = rule => {
   const testString = "clientName"  
   let {script} = rule 
-      let startIndex = script.indexOf(testString)+testString.length+6
-      let start = script.slice(startIndex)
-      let endIndex = start.indexOf("'")
-      const name = start.slice(0, endIndex)
-      return {...rule, appName: name}
+  let startIndex = script.indexOf(testString) + testString.length + 6
+  let start = script.slice(startIndex)
+  let endIndex = start.indexOf("'")
+  const name = start.slice(0, endIndex)
+  return {...rule, appName: name}
 }
 
 async function getClients(req, res, next){
@@ -43,9 +43,9 @@ async function getClients(req, res, next){
     const get_rules = {
       method: "GET",
       url: process.env.RULES_URL,
-      headers: { "authorization": "Bearer "+ token },
-      
-    }  
+      headers: { "authorization": "Bearer "+ token },      
+    };  
+
     const clientsResponse = await axios(get_clients)
     const rulesResponse = await axios(get_rules)
     const clients = clientsResponse.data
@@ -60,10 +60,11 @@ async function getClients(req, res, next){
     const globalRules = rules.filter(rule => !rule.script.includes(testString))  
     
     const clientsWithRules = clients.map( client => {
-      let rules = [...globalRules.map(r => r.name), 
-        ...rulesWithAppNames.filter(r => r.appName === client.name).map(r => r.name)]
+      let rules = [
+        ...rulesWithAppNames.filter(r => r.appName === client.name).map(r => r.name),
+        ...globalRules.map(r => r.name)
+      ]
       return {...client, rules}
-
     })
 
     res.locals.clients = clientsWithRules.filter(client => client.name !== "All Applications")
@@ -82,8 +83,7 @@ router.get('/', ensureLoggedIn, function(req, res, next) {
    next();
 }, getClients, function(req, res, next) {     
      res.render('index', { user: req.user });
-   } 
- 
+   }  
 );
 
 

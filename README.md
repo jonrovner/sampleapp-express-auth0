@@ -2,11 +2,7 @@
 
 This app displays the Auth0 tenant's enabled clients and the rules applying to each application.
 
-This app  uses [Passport](https://www.passportjs.org/) with
-[Express](https://expressjs.com/) to sign users in via [Auth0](https://auth0.com/).
-and the [`passport-openidconnect`](https://www.passportjs.org/packages/passport-openidconnect/)
-strategy within an Express application to sign users in via Auth0 using OpenID
-Connect.
+This app  uses [Passport](https://www.passportjs.org/) and the [`passport-openidconnect`](https://www.passportjs.org/packages/passport-openidconnect/) strategy with [Express](https://expressjs.com/) to sign users in via [Auth0](https://auth0.com/).
 
 This app implements the features of a typical [TodoMVC](https://todomvc.com/)
 app, and adds sign in functionality.  This app is a traditional web application,
