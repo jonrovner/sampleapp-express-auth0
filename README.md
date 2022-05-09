@@ -45,10 +45,6 @@ Navigate to [`http://localhost:3000`](http://localhost:3000).
 
 HTML pages  are rendered via [EJS](https://ejs.co/) templates and styled with vanilla CSS.  
 
-After users sign in, a login session is established and maintained between the
-server and the browser with a cookie.  As authenticated users interact with the
-app, creating and editing todo items, the login state is restored by
-authenticating the session.
 
 ## License
 
