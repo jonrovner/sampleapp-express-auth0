@@ -11,7 +11,7 @@ var logger = require('morgan');
 
 // pass the session to the connect sqlite3 module
 // allowing it to inherit from session.Store
-var SQLiteStore = require('connect-sqlite3')(session);
+//var SQLiteStore = require('connect-sqlite3')(session);
 
 var indexRouter = require('./routes/index');
 var authRouter = require('./routes/auth');
@@ -33,7 +33,7 @@ app.use(session({
   secret: 'keyboard cat',
   resave: false, // don't save session if unmodified
   saveUninitialized: false, // don't create session until something stored
-  store: new SQLiteStore({ db: 'sessions.db', dir: './var/db' })
+ // store: new SQLiteStore({ db: 'sessions.db', dir: './var/db' })
 }));
 app.use(csrf());
 app.use(passport.authenticate('session'));
